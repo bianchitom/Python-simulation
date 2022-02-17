@@ -1,0 +1,48 @@
+/*
+* Custom authentication and privacy-preserving on-demand billing protocol
+* for EV dynamic wireless charging
+*/
+
+// TODO: can be just a run with same RSU and a subset of CPs, without changing RSUs and FS
+// and just 3 CPs: init, intermediate and last for stop charging
+
+protocol myprotcol() {
+
+    // Registration Authority
+    role RA {
+
+    }
+
+    // Bank
+    role BANK {
+
+    }
+
+    // Electricall Vehicle
+    role EV {
+
+    }
+
+    // Charging Service Provider Authority
+    role CSPA {
+
+    }
+
+    // Fog Server
+    role FS {
+
+    }
+
+    // Road Side Unit
+    // need a lot of RSUs (?)
+    role RSU {
+
+    }
+
+    // Charging Plate
+    // need a lot of CPs (?)
+    role CP {
+
+    }
+
+}

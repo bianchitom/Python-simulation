@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 '''
+Python script to compute the computational cost of the custom authentication protocol
+for dynamic wireless power transfer for electric vehicles.
+'''
+
+'''
 Boneh-Franklin Identity Based Encryption
   
 | From: "D. Boneh, M. Franklin Identity-Based Encryption from the Weil Pairing", Section 4.2.
@@ -15,6 +20,8 @@ Boneh-Franklin Identity Based Encryption
 
 '''
 TODO: unique file for simulate all the protocol and benchmark
+- find a way to compute e-one-way hash function
+- continue with rsu-ev authentication
 '''
 
 from charm.schemes.ibenc.ibenc_bf01 import IBE_BonehFranklin
@@ -40,7 +47,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-# example of encryption/decryption
+# RA generation of all the parameters
 ID_ra = str(uuid.uuid4().hex)[:10]
 group = PairingGroup('SS512', secparam=1024) # S512 is in symmetric pairing
 ibe = IBE_BonehFranklin(group) # initialization of the scheme
@@ -94,9 +101,10 @@ print(f'{bcolors.WARNING}[*] CSPA computes the key pair for the bilinear mapping
 # k_cspa = pair(cspa_priv_key, group.hash([group.hash(ID_ra, G1), h.hashToZr(ID_ra + PID_ev)], G1))
 k_cspa = pair(group.hash(ID_cspa, G1), group.hash(str(group.hash(ID_ra, G1))+ str(h.hashToZr(ID_ra + PID_ev)), G1))
 k_cspa2 = random_cspa*p_ev
-# print(k_cspa)
 
 mac_ev2 = waters.sha2(str(k_cspa) + str(k_cspa2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + str(00)).hex()
+
+# mac check fails
 if mac_ev != mac_ev2:
     print(f'{bcolors.FAIL}[!] EV mac not valid!{bcolors.ENDC}')
 
@@ -110,13 +118,16 @@ cipher = ibe.encrypt(RA_pub_key, PID_ev, m4)
 print(f'{bcolors.OKBLUE}[4] CSPA sends m4 to EV (mac_cspa) encrypted with PID ev{bcolors.ENDC}')
 m4_dec = json.loads(ibe.decrypt(RA_pub_key, pid_priv_key, cipher))
 
-# EV checks the validity of the mac
+# EV checks the validity of the mac computing the cspa mac on its own
 mac_cspa2 = waters.sha2(str(k_ev) + str(k_ev2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + "02").hex()
+
+# mac check fails
 if mac_cspa != mac_cspa2:
     print(f'{bcolors.FAIL}[!] CSPA mac not valid!{bcolors.ENDC}')
 
 print(f'{bcolors.OKGREEN}[*] Authentication completed, computing session keys!{bcolors.ENDC}')
 
+# session keys that are equal for the two parties
 sk_ev = waters.sha2(str(k_ev) + str(k_ev2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + "01").hex()
 sk_cspa = waters.sha2(str(k_ev) + str(k_ev2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + "01").hex()
 

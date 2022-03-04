@@ -41,7 +41,7 @@ class bcolors:
 
 
 # example of encryption/decryption
-ID_ra = str(uuid.uuid4().hex)
+ID_ra = str(uuid.uuid4().hex)[:10]
 group = PairingGroup('SS512', secparam=1024) # S512 is in symmetric pairing
 ibe = IBE_BonehFranklin(group) # initialization of the scheme
 waters = Waters(group, length=8, bits=32)
@@ -50,13 +50,13 @@ h = Hash(group)
 print(f'{bcolors.OKGREEN}[+] RA generates the parameters of the system{bcolors.ENDC}')
 
 # CSPA registration
-ID_cspa = str(uuid.uuid4().hex)
+ID_cspa = str(uuid.uuid4().hex)[:10]
 cspa_priv_key = ibe.extract(RA_priv_key, ID_cspa)
 print(f'[+] CSPA registered to RA with ID {ID_cspa}')
 
 # EV registration
-ID_ev = str(uuid.uuid4().hex)
-PID_ev = str(uuid.uuid4().hex)
+ID_ev = str(uuid.uuid4().hex)[:10]
+PID_ev = str(uuid.uuid4().hex)[:10]
 ev_priv_key = ibe.extract(RA_priv_key, ID_ev)
 pid_priv_key = ibe.extract(RA_priv_key, PID_ev)
 print(f'[+] EV registered to RA with ID {ID_ev} and PID {PID_ev}')
@@ -80,7 +80,7 @@ print(f'{bcolors.WARNING}[*] EV computes the key pair for the bilinear mapping{b
 k_ev = pair(group.hash(ID_cspa, G1), group.hash(str(group.hash(ID_ra, G1))+ str(h.hashToZr(ID_ra + PID_ev)), G1))
 k_ev2 = random_ev*p_cspa
 
-mac_ev = waters.sha2(str(k_ev) + str(k_ev2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + str(00)).hex()[:25]
+mac_ev = waters.sha2(str(k_ev) + str(k_ev2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + str(00)).hex()
 
 m3 = bytes(json.dumps({"ID_ra": ID_ra, "PID": PID_ev, "mac_ev": mac_ev}), encoding='utf-8')
 cipher = ibe.encrypt(RA_pub_key, ID_cspa, m3)
@@ -96,7 +96,7 @@ k_cspa = pair(group.hash(ID_cspa, G1), group.hash(str(group.hash(ID_ra, G1))+ st
 k_cspa2 = random_cspa*p_ev
 # print(k_cspa)
 
-mac_ev2 = waters.sha2(str(k_cspa) + str(k_cspa2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + str(00)).hex()[:25]
+mac_ev2 = waters.sha2(str(k_cspa) + str(k_cspa2) + str(ID_cspa) + str(PID_ev) + str(nonce_ev) + str(nonce_cspa) + str(00)).hex()
 if mac_ev != mac_ev2:
     print(f'{bcolors.FAIL}[!] EV mac not valid!{bcolors.ENDC}')
 

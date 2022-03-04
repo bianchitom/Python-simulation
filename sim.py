@@ -42,7 +42,7 @@ class bcolors:
 
 # example of encryption/decryption
 ID_ra = str(uuid.uuid4().hex)
-group = PairingGroup('SS512', secparam=1024) # use of the same default curve of the example, SS512 is in symmetric pairing?
+group = PairingGroup('SS512', secparam=1024) # S512 is in symmetric pairing
 ibe = IBE_BonehFranklin(group) # initialization of the scheme
 h = Hash(group)
 (RA_pub_key, RA_priv_key) = ibe.setup() # RA setup
@@ -77,11 +77,10 @@ print(f'{bcolors.OKBLUE}[2] CSPA sends m2 to EV (nonce_cspa, r_cspa*P, ID_cspa){
 print(f'{bcolors.WARNING}[*] EV computes the key pair for the bilinear mapping{bcolors.ENDC}')
 k_ev = pair(group.hash(ID_cspa, G1), group.hash([pid_priv_key, h.hashToZr(ID_ra + PID_ev)], G1))
 k_ev2 = random_ev*p_cspa
-#print(k_ev)
 
 m3 = bytes(json.dumps({"ID_ra": ID_ra, "PID": PID_ev}), encoding='utf-8')
 cipher = ibe.encrypt(RA_pub_key, ID_cspa, m3)
-print(f'{bcolors.OKBLUE}[3] EV sends m3 to CSPA (ID_ra, PID) encrypted with ID cspa{bcolors.ENDC}')
+print(f'{bcolors.OKBLUE}[3] EV sends m3 to CSPA (ID_ra, PID) encrypted with ID CSPA{bcolors.ENDC}')
 
 # CSPA receives the encrypted message and decrypt it
 m3_dec = json.loads(ibe.decrypt(RA_pub_key, cspa_priv_key, cipher))
@@ -97,6 +96,7 @@ assert k_ev2 == k_cspa2, f'{bcolors.OKCYAN}[!] k2 are DIFFERENT!{bcolors.ENDC}'
 # CSPA sends to EV the mac_cspa computed for amutual authentication
 m4 = bytes(json.dumps({"mac_cspa": ID_ra}), encoding='utf-8')
 cipher = ibe.encrypt(RA_pub_key, PID_ev, m4)
-print(f'{bcolors.OKBLUE}[4] EV sends m4 to CSPA (ID_ra, PID) encrypted with ID cspa{bcolors.ENDC}')
+print(f'{bcolors.OKBLUE}[4] CSPA sends m4 to EV (mac_cspa) encrypted with PID ev{bcolors.ENDC}')
 m4_dec = json.loads(ibe.decrypt(RA_pub_key, pid_priv_key, cipher))
-print(m4_dec)
+
+# EV checks the validity of the mac

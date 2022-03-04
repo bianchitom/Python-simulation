@@ -19,7 +19,7 @@ Boneh-Franklin Identity Based Encryption
 '''
 
 '''
-TODO: unique file for simulate all the protocol and benchmark
+TODO: 
 - find a way to compute e-one-way hash function
 - continue with rsu-ev authentication
 '''

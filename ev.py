@@ -3,6 +3,7 @@
 import socket
 import json
 import uuid
+import secrets
 
 from charm.schemes.ibenc.ibenc_bf01 import IBE_BonehFranklin
 from charm.toolbox.pairinggroup import PairingGroup, init
@@ -52,7 +53,7 @@ m = json.dumps({"Entity": "EV", "ID": ID_ev})
 registration with RA for ID
 '''
 params = request_RA(m)
-print("[*] Registration succesfull")
+print("[*] Registration succesfull for ID")
 # build the cryptosystem
 group = PairingGroup(str(params["ecc"]), secparam=int(params["bits"]))
 ibe = IBE_BonehFranklin(group)
@@ -68,7 +69,7 @@ PID Registration
 # registration with RA for PID
 m = json.dumps({"Entity": "PID EV", "ID": PID_ev})
 params = request_RA(m)
-print("[*] Registration succesfull")
+print("[*] Registration succesfull for PID")
 
 # get the private key
 sk_PID = get_private_key(params['sk'], PID_ev, s, group)  
@@ -77,3 +78,13 @@ sk_PID = get_private_key(params['sk'], PID_ev, s, group)
 ''' 
 EV-CSPA Authentication 
 '''
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT_CSPA))
+    
+    nonce_ev = secrets.token_hex(8)
+    random_ev = secrets.token_hex(8)
+
+    s.send(bytes(json.dumps({"Entity": "EV", "N_ev": nonce_ev, "r_ev": random_ev}), encoding='utf-8'))
+    data = s.recv(1024)
+
+print(f"Received {data!r}")

@@ -3,6 +3,7 @@
 import socket
 import json
 import uuid
+import secrets 
 
 from charm.schemes.ibenc.ibenc_bf01 import IBE_BonehFranklin
 from charm.toolbox.pairinggroup import PairingGroup, init
@@ -63,6 +64,25 @@ sk_CSPA = get_private_key(params['sk'], ID_cspa, s, group)
 
 
 # CSPA starts a server waiting for EV to communicate
+print(f'[+] Starting server for EV conncetion')
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT_CSPA))
+    s.listen()
+    conn, addr = s.accept()
+    with conn:
+        print(f"Connected by {addr}")
+        data = json.loads(str(conn.recv(1024))[2:-1])
+        if data["Entity"] == "EV":
+            print(f'[+] EV wants to authenticate!')
+        nonce_ev = data["N_ev"]
+        random_ev = data["r_ev"]
+
+        nonce_cspa = secrets.token_hex(8)
+        random_cspa = secrets.token_hex(8)
+        
+        conn.send(bytes(json.dumps({"Entity": "CSPA", "N_ev": nonce_ev, "r_ev": random_ev, "ID": ID_cspa}), encoding='utf-8'))
+
+
 
 ''' 
 CSPA-EV Authentication 

@@ -29,7 +29,8 @@ def get_parameters(ID):
     sk = ibe.extract(RA_priv_key, ID)
     sk = str(sk).replace('\'', '"')
     sk = json.loads(sk)
-    return json.dumps({"sk":sk['id'], "P": str(RA_pub_key["P"]), "P2": str(RA_pub_key["P2"]), "ecc": ecc[0], 'bits': ecc[1]})
+    # TODO: remove the private key of RA from the parameters
+    return json.dumps({"sk":sk['id'], "P": str(RA_pub_key["P"]), "P2": str(RA_pub_key["P2"]), "s": str(RA_priv_key["s"]), "ecc": ecc[0], 'bits': ecc[1]})
 
 def service_connection(key, mask):
     sock = key.fileobj
@@ -51,7 +52,6 @@ def service_connection(key, mask):
 
             # generate private key and send parameters for the cryptosystem
             params = get_parameters(ID)
-            print(params)
             print('[*] Send parameters back!')
             sent = sock.send(bytes(params, encoding='utf-8'))  # Should be ready to write
             data.outb = data.outb[sent:]

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 '''
 Boneh-Franklin Identity Based Encryption
   
@@ -12,13 +13,20 @@ Boneh-Franklin Identity Based Encryption
 :Date:       2/2011
 '''
 
+'''
+TODO: unique file for simulate all the protocol and benchmark
+'''
+
 from charm.toolbox.pairinggroup import PairingGroup
 from charm.toolbox.pairinggroup import ZR,G1,G2,pair
 from charm.core.math.integer import randomBits,integer,bitsize
 from charm.toolbox.hash_module import Hash,int2Bytes,integer
 from charm.toolbox.IBEnc import IBEnc
 
-debug = True
+import uuid
+import secrets
+
+debug = False
 class IBE_BonehFranklin(IBEnc):
     
     def __init__(self, groupObj):
@@ -101,13 +109,33 @@ class IBE_BonehFranklin(IBEnc):
             return msg
         return None
 
+# example of encryption/decryption
+group = PairingGroup('MNT224', secparam=1024) # use of the same default curve of the example
+ibe = IBE_BonehFranklin(group) # initialization of the scheme
+(RA_pub_key, RA_priv_key) = ibe.setup() # RA setup
+
+#print(f'public key: {RA_pub_key}\nprivate key: {RA_priv_key}')
+
+# CSPA registration
+ID_cspa = str(uuid.uuid4().hex)
+cspa_priv_key = ibe.extract(RA_priv_key, ID_cspa)
+#print(cspa_priv_key)
+
+# EV registration
+ID_ev = str(uuid.uuid4().hex)
+PID_ev = str(uuid.uuid4().hex)
+ev_priv_key = ibe.extract(RA_priv_key, ID_ev)
+pid_priv_key = ibe.extract(RA_priv_key, PID_ev)
+#print(pid_priv_key)
+
+# EV-CSPA Authentication phase
+nonce_ev = secrets.token_hex(8)
+random_ev = secrets.token_hex(8)
 
 
-group = PairingGroup('MNT224', secparam=1024)    
-ibe = IBE_BonehFranklin(group)
-(master_public_key, master_secret_key) = ibe.setup()
-ID = 'user@email.com'
-private_key = ibe.extract(master_secret_key, ID)
+
+
+
 msg = b"hello world!!!!!"
-cipher_text = ibe.encrypt(master_public_key, ID, msg)
-print(ibe.decrypt(master_public_key, private_key, cipher_text))
+cipher_text = ibe.encrypt(RA_pub_key, ID_cspa, msg)
+print(ibe.decrypt(RA_pub_key, cspa_priv_key, cipher_text))
